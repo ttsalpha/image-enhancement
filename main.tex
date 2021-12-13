@@ -1,0 +1,208 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% define %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[12pt,letterpaper]{report}
+
+\author{Son Tran}
+\title{Image Enhancement By Edge-Preserving Filters}
+\date{\today}
+
+\usepackage[utf8]{inputenc}
+\usepackage{vietnam}
+
+\usepackage[margin=1in,nomarginpar]{geometry}
+
+\usepackage{geometry} 
+
+\usepackage{amsmath}
+
+\usepackage{graphicx} 
+\graphicspath{{./assets/}}
+
+\usepackage{indentfirst}
+\setlength\parindent{0pt}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{Nhóm 10}
+\fancyhead[RE,LO]{Image Enhancement By Edge-Preserving Filters}
+\fancyfoot[CE,CO]{\leftmark}
+\fancyfoot[LE,RO]{Trang \thepage}
+
+\renewcommand\thesection{\Roman{section}.}
+\renewcommand\thesubsection{\arabic{subsection}.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% documents %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\begin{center}
+	\Large{
+	\textbf{Image Enhancement By Edge-Preserving Filters}
+	
+	\vspace{5pt}
+	\normalsize{Tăng cường ảnh bằng bộ lọc bảo toàn cạnh}
+
+	Nhóm 10 - Xử lý ảnh (INT3404)}
+
+	\vspace{15pt}
+\end{center}
+
+    
+\section{Mở đầu}
+Tăng cường ảnh rất hữu ích khi các chi tiết trong hình ảnh bị mất do nhiều lý do khác nhau. Người ta thường loại mask khỏi một hình ảnh nhất định để tăng cường các chi tiết. Vấn đề  là làm sao để có được một mặt nạ tốt?
+	
+Một bộ lọc bảo tồn cạnh có thể được sử dụng để tạo ra một mặt nạ làm mịn trên các khu vực có chi tiết tốt, nhưng vẫn bảo tồn hầu hết các cạnh. Các kết quả thực tế cho thấy một bộ lọc như vậy rất hiệu quả.
+	
+\section{Giới thiệu}
+
+\subsection{Đặt vấn đề}
+Tăng cường hình ảnh là cần thiết khi phạm vi động của phương tiện ghi hình hoặc hiển thị nhỏ hơn tín hiệu mà nó tiếp xúc.
+    
+Phạm vi động là tỷ lệ giữa các giá trị lớn nhất và nhỏ nhất mà một đại lượng nhất định có thể giả định. Có thể hiểu phạm vi động là tỉ lệ giữa cường độ sáng nhất và tối nhất đo được trong một khung cảnh.
+    
+Trong thực tế thì không có màu nào là đúng trắng hoặc đúng đen mà chỉ có mức độ khác nhau về cường độ của nguồn phát sáng và cường độ sáng phát xạ. 
+    
+Các phương tiện truyền thông có thể là phim, màn hình và máy in. Nếu không có bất kỳ hậu xử lý nào, khả năng hiển thị của các chi tiết quan trọng ở cả vùng sáng và tối đều giảm đáng kể. Những khu vực như vậy có thể xuất hiện phẳng hoặc rửa sạch.
+    
+Ví dụ về ảnh "washed out".
+        
+\begin{center}
+	\includegraphics[width=7cm]{image1.jpg}
+\end{center}
+	
+Sự hiện diện của ánh sáng không liên quan trong môi trường xem có thể làm giảm độ tương phản cảm nhận được của hình ảnh (dưới cùng) so với hình ảnh được hiển thị trong bóng tối (trên).
+    
+\begin{center}
+	\includegraphics[width=8cm]{image2.jpg}
+\end{center}
+    
+Ảnh phẳng (Flat) là ảnh có rất ít độ tương phản.
+    
+Điều này cũng có thể xảy ra trong các phương thức hình ảnh khác như Chụp cộng hưởng từ. Chụp cộng hưởng từ là một loại hình quét sử dụng từ trường mạnh và sóng vô tuyến để tạo ra hình ảnh chi tiết bên trong cơ thể.
+    
+\begin{center}
+	\includegraphics[width=7cm]{image3.jpg}
+\end{center}
+	
+\subsection{Giải pháp}
+	
+Một quy trình phổ biến để nâng cao là loại bỏ phiên bản có tần số thấp của hình ảnh khỏi bản gốc, tăng các thành phần tần số cao. Nhưng người ta biết rằng có thể tạo ra những hiệu ứng khó chịu, những vùng quá sáng hay tối trông giống như các dải sáng và tối gần các cạnh, có thể được tạo ra.
+
+\begin{center}
+	\includegraphics[width=7cm]{image4.jpg}
+\end{center}
+	
+Do đó, mặt nạ sắc nét (sharp mask) là cần thiết. Một cách tốn kém và tốn thời gian để có được những bức ảnh chất lượng tốt là để các nhiếp ảnh gia chụp thiếu sáng hoặc phơi sáng cảnh quá mức.
+	
+\subsection{Mô tả chi tiết}
+    
+Bộ lọc bảo toàn cạnh còn được gọi là bộ lọc phân cụm.
+    
+Để nhìn thấy những thứ trong quy mô không gian nào đó liên quan đến việc loại bỏ dữ liệu bao gồm cả tín hiệu và nhiễu. Sau thang đo (quy mô) được chọn thì bước tiếp theo là ước tính những gì chúng ta có thể thấy - ảnh đầu ra. Có lẽ, kết quả đầu ra phải là một bản đại diện tốt cho dữ liệu đầu vào. Thủ tục này được gọi là "ước lượng mạnh mẽ".
+    
+Phân tích cụm là một kiểu ước tính mạnh mẽ trong bối cảnh nhận dạng mẫu. Theo định nghĩa, trung tâm cụm là một ước tính tin cậy về dữ liệu liên quan đến nó. Để cung cấp một ước tính tốt nhất, người ta có thể loại trừ các giá trị ngoại lai hoặc gán cho chúng những giá trị không đáng kể.
+    
+Tuy nhiên, người ta biết rằng việc phân cụm cũng phụ thuộc cả vào quy mô. Mỗi điểm có thể được coi là một cụm ở quy mô rất tốt hoặc toàn bộ tập dữ liệu có thể được coi là một cụm duy nhất trên quy mô rất thô. Kết quả là, phân cụm không gian theo tỷ lệ và lọc không gian theo tỷ lệ được liên kết chặt chẽ với nhau.
+    
+\subsection{Triển khai công thức}
+    
+Gọi $x_i$ là tọa độ của 1 điểm ảnh và $y_i$ là mức độ xám hoặc bất kì thuộc tính có giá trị thực nào. Biết rằng mỗi pixel đều có độ dư thừa cao do tương quan không gian. Do đó, với mỗi quy mô, chúng tôi có thể ước tính được giá trị pixel mới y tại vị trí $x$ bằng các pixels lân cận nó. Thông thường thì các điểm dữ liệu gần $(x,y)$ sẽ cho nhiều dữ liệu hơn so với các điểm ở xa. Điều này được triển khai bằng cách mỗi dữ liệu tham gia để ước tính y phải trả 1 chi phí nào đó. Hàm chi phải nhỏ đối với các điểm lân cận nhưng lớn so với các điểm ở xa.
+    
+Để ước tính này trở nên chắc chắn, thông tin phải được lan truyền giữa các dữ liệu lân cận. Nếu chúng ta coi những đóng góp vào việc xác định $y$ từ dữ liệu lân cận là một phân phối xác suất, thì entropy của nó phải được tối đa hóa theo các ràng buộc chi phí tuyến tính.
+    
+    
+Lí do trên ngụ ý rằng chúng ta có thể ước tính các pixel một các độc lập.  Giả sử chúng ta có một vùng lân cận các điểm dữ liệu $S = \{(x_i, y_i): i = 1,….N\}$. Gọi $P_i$  biểu thị sự đóng góp của $(x_i,y_i)$ vào $(x,y)$ hay nói cách khác là xác suất mà $(x,y)$ bị ảnh hưởng bởi $(x_i,y_i)$. Lưu ý rằng các miền đầu vào và đầu ra phải được xử lý khác nhau vì miền trước là cố định và được biết đến nhưng miền sau thực sự phụ thuộc vào môi trường.
+    
+Do đó coi hàm chi phí có 2 thành phần là $e_x(x_i)$ và $e_y(y_i)$. Tiêu chí để ra là để tối đa hóa entropy.
+    
+$$S = -\sum_i P_i \log P_i$$
+    
+tuân theo các ràng buộc tuyến tính
+    
+$$\sum_i P_ie_x(\mathbf x_i) = C_x, \sum_i P_ie_y(y_i) = C_y$$
+    
+thu được bằng cách lấy trung bình chi phí các dữ liệu lân cận. Nhưng thực tế thì độ chính xác của $C_x$ và $C_y$ không phải là vấn đề. Sử dụng phương pháp nhân tử Larange (là một phương pháp để tìm cực tiểu hoặc cực đại địa phương của một hàm số chịu các điều kiện giới hạn.), thì
+
+$$P_i = e^{-\alpha e_x(\mathbf x_i)-\beta e_y(y_i)}/Z$$
+
+Trong đó $Z = \sum_i e^{-\alpha e_x (\mathbf x _i)-\beta e_y(y_i)}$. Để kết nối với cơ học thống kê, ta gọi $\beta = 1/T$ là "nhiệt độ nghịch đảo" và $Z$ là hàm phân vùng. Năng lượng tự do được định nghĩa là:
+
+$$F=-\frac 1 \beta \log Z = -\frac 1 \beta \sum_j e^{-\alpha \|{\mathbf x_j-\mathbf x}\|_2^2-\beta(y_j-y)^2}$$
+    
+Ta có $e_x = \|\mathbf x - \mathbf x_i\|_2^2$ và $e_y=\|y-y_i\|_2^2$  trong đó $\| \|_2^2$  là bình phương khoảng các Euclid. Ở trạng thái cân bằng, hệ nhiệt động lực học luôn chuyển sang trạng thái giảm thiểu năng lượng tự do của nó. Chúng ta muốn $\partial x/\partial y =0$ hay tương đương:
+
+ \begin{equation}\label{one}
+ y=\sum_i \frac {y_iw_ie^{-\beta(y_i-y)^2}}{\sum_j w_je^{-\beta(y_j-y)^2}}
+ \end{equation}
+
+Trong đó $w_i = e^{-\alpha\|\mathbf x_i-\mathbf x\|_2^2}$. $\alpha$ là tỷ lệ trong không gian đầu vào và chi phối vùng lân cận hiệu quả của dữ liệu được sử dụng trong bộ lọc.
+
+    
+\begin{itemize}
+	\item[-] Khi $\alpha=0$, $w_i = 1$ nếu $\mathbf x = 1$ và $0$ trong trường hợp còn lại. Do đó mọi pixel đều được bảo toàn. Người lại thì giá trị $\alpha$ nhỏ ngụ ý rằng nhiều lân cận của $x$ có thể đóng góp tốt hơn.
+	\item[-] Khi $\beta=\infty$, mọi $y_i$ với $w_i$ khác không là một nghiệm của \eqref{one}. Với $\beta=0$ thì chỉ có một nghiệm duy nhất. Lược đồ sau đó giảm xuống bộ lọc Gaussian. Từ đó $\beta$ là thước đo tỷ lệ cho không gian đầu ra.
+	\item[-] Ước tính cụ thể thu được phụ thuộc vào $\beta$ và y ban đầu. Có một cách đơn giản để xác định giá trị này với 1 $\alpha$ cho trước.
+	      $$\overline y=\frac{\sum_i y_iw_i}{\sum_i w_i}$$
+	          	
+	      $$\sigma_y^2=\frac{\sum_i(\overline y-y)^{-2}w_i}{\sum_i w_i}$$
+	\item[-] Trong đó $\overline y$ là trung bình cộng của các giá trị pixel trong khoảng lân cận $\mathbf x$. $\sigma_y^2$ là thước đo phương sai cục bộ của nó. Do đó đối với mọi vị trí pixel, một lựa chọn tự nhiên là $\beta=(2\sigma_y^2)^{-1}$. Trên thực tế, bộ lọc phân cụm chỉ có một tham số. Việc lựa chọn thông số tỷ lệ theo dữ liệu này làm cho bộ lọc có tính thích ứng cao.
+	\item[-] Mặc dù tất cả các cuộc thảo luận đều được thực hiện bằng hình ảnh để đơn giản và rõ ràng, bộ lọc phân cụm có thể áp dụng cho bất kỳ loại dữ liệu nào hoặc dữ liệu được tính toán với miền không gian hoặc thời gian, chẳng hạn như đường cong và tín hiệu giọng nói. Các điểm dữ liệu không cần phải nằm trên một lưới thông thường, theo yêu cầu của hầu hết các nhịp đại số trong hình ảnh kỹ thuật số theo tỷ lệ.
+\end{itemize}
+    
+\section{Quá trình và kết quả}
+    
+\subsection{Quá trình}
+    
+Mặt nạ tốt phải mịn ở những khu vực có chi tiết nhỏ nhưng vẫn có các cạnh sắc nét giữa các cấu trúc quy mô lớn hơn.
+
+Bản chất của việc sử dụng bộ lọc phân cụm là điều chỉnh lại mặt nạ từ hình ảnh gốc và thay đổi tỷ lệ sẽ nâng cao chi tiết trong khi tránh quầng sáng xung quanh các cạnh:
+	
+\begin{itemize}
+	\item[] Bước 1: Lọc một hình ảnh đã cho I sử dụng đệ quy $k$ lần với $\alpha=\frac 1 2$ ta tính được $I_i$.
+	\item[] Bước 2 : Tính $I_d=I - I_i$.
+	\item[] Bước 3 : Tính giá trị trung bình M với phương sai V cho mọi pixel của $I_d$
+	\item[] Bước 4: $$I_m(\mathbf x)=\begin{cases}I_i(\mathbf x) &\text{Nếu } |I_d(\mathbf x)-M(\mathbf x)|<2.5V \\I_i(\mathbf x) &\text{Khác}\end{cases}$$
+	\item[] Bước 5: Tính $I_0=I-sI_m$ với $s=0.5$
+	\item[] Bước 6 : Ta thu được $I_0$ nằm trong khoảng từ $m-2.5v$ đến $m+2.5v$.
+\end{itemize}
+
+Ở bước 1 được sử dụng tạo phiên bản làm mịn của hình ảnh để phục vụ như mặt nạ ban đầu .Mặt nạ sao cho các chi tiết cục bộ được làm mịn trong khi các cạnh được giữ nguyên.Tuy nhiên, làm mượt có nghĩa là không phải tất cả các tín hiệu hữu ích đều có thể được bảo toàn. Ví dụ, các điểm sáng / tối có thể được bộ lọc loại bỏ hoàn toàn; các cạnh của tỷ lệ nhỏ hơn có thể được làm mịn; các góc của các cạnh có thể được làm tròn ở một mức độ nào đó.
+
+Như vậy ở bước 2 là hình ảnh chứa các tín hiệu cần được khôi phục trong mặt nạ
+
+Trong bước 3 chúng ta sẽ tính toán giá trị trung bình và phương sai của $I_d$ để từ quyết định tín hiệu nào nên thêm vào mặt nạ $I_i$  ban đầu.
+
+Bước 4 chúng ta khôi phục tín hiệu vào mặt nạ bằng các phân ngưỡng vì các góc và các điểm sáng thì tín hiệu chênh lệch sẽ được khuếch đại lớn so với phương sai cục bộ của chúng.
+
+Tiếp đó ở bước 5 chúng ta sẽ trừ mặt nạ khỏi ảnh gốc và bước 6 thay đổi tỉ lệ để đưa hình ảnh về dải động đầy đủ của nó.
+
+\subsection{Kết quả}
+
+\begin{center}
+	\includegraphics[width=15cm]{image5.jpg}
+\end{center}
+
+Hình 1a, 1b, 1c lần lượt là ảnh đầu vào và ảnh $I_m$ và ảnh đầu ra khi được nâng cao bằng bảo toàn cạnh bằng phương pháp clustering.
+
+Ta có thể thấy rõ ràng là áo khoác và lớp cỏ được tăng cường, rõ nét hơn trong khi các mối quan hệ về độ sáng của các khu vực cục bộ được bảo toàn, điều này là kết quả của việc lọc bảo toàn cạnh để nâng cao ảnh.
+
+\begin{center}
+	\includegraphics[width=13cm]{image6.jpg}
+\end{center}
+
+Ví dụ này chúng ta sử dụng ảnh đầu vào là ảnh cộng hưởng MR 8 bit ban đầu vào 2a và kết quả ta thu được hình 2b khi chỉ sử dụng 4 bit thấy được các cấu trúc giải phẫu trở lên rõ ràng hơn nhiều.
+
+Vậy trong cả 2 ví dụ trên ta thấy hình ảnh nâng cao thấy rõ ràng hơn, sắc nét hơn mà vẫn giữ được quan hệ về độ sáng của các khu vực được bảo toàn. Các thí nghiệm trên cũng chứng minh bộ lọc phân cụm phù hợp để nén động và nâng cao chất lượng ảnh.
+	
+\section{Tổng kết}
+
+Qua các phân tích, chứng minh và thực nghiệm ở trên ta thấy được được sử dụng bộ lọc bảo toàn cạnh là cần thiết và hiệu quả trong việc tạo ra mặt nạ có thể tránh được các hào quang trong việc nâng cao chất lượng ảnh.
+
+Việc sử dụng bộ lọc phân cụm cho thấy rõ việc tạo ra một mặt nạ tốt do các đặc tính làm mịn và lưu trữ cạnh tốt của nó. Hình ảnh được nâng cao, sắc nét hơn mà vẫn giữ được quan hệ về độ sáng của các khu vực được bảo toàn.
+
+
+Như vậy việc lọc bảo toàn cạnh là một phương pháp hết sức cần thiết và hiệu của trong công việc nâng cao chất lượng ảnh
+
+    
+\end{document}
